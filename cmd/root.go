@@ -22,12 +22,12 @@ THE SOFTWARE.
 package cmd
 
 import (
+	"fmt"
 	"os"
 
+	"github.com/efeaslansoyler/go-passwordgen/internal/generator"
 	"github.com/spf13/cobra"
 )
-
-
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -39,9 +39,24 @@ examples and usage of using your application. For example:
 Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
-	// Uncomment the following line if your bare application
-	// has an action associated with it:
-	// Run: func(cmd *cobra.Command, args []string) { },
+	RunE: func(cmd *cobra.Command, args []string) error {
+		opts := generator.PasswordOptions{
+			Length:          length,
+			UseSpecialChars: useSpecialChars,
+			UseNumbers:      useNumbers,
+			UseUpper:        useUpper,
+			UseLower:        useLower,
+			Count:           count,
+		}
+		passwords, err := generator.GeneratePassword(opts)
+		if err != nil {
+			return err
+		}
+		for i, password := range passwords {
+			fmt.Printf("Password %d: %s\n", i+1, password)
+		}
+		return nil
+	},
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -53,16 +68,20 @@ func Execute() {
 	}
 }
 
+var (
+	length          int
+	useSpecialChars bool
+	useNumbers      bool
+	useUpper        bool
+	useLower        bool
+	count           int
+)
+
 func init() {
-	// Here you will define your flags and configuration settings.
-	// Cobra supports persistent flags, which, if defined here,
-	// will be global for your application.
-
-	// rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.go-passwordgen.yaml)")
-
-	// Cobra also supports local flags, which will only run
-	// when this action is called directly.
-	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	rootCmd.Flags().IntVarP(&length, "length", "l", 12, "Length of the password")
+	rootCmd.Flags().BoolVarP(&useSpecialChars, "special", "s", true, "Use special characters")
+	rootCmd.Flags().BoolVarP(&useNumbers, "numbers", "n", true, "Use numbers")
+	rootCmd.Flags().BoolVarP(&useUpper, "upper", "u", true, "Use uppercase letters")
+	rootCmd.Flags().BoolVarP(&useLower, "lower", "o", true, "Use lowercase letters")
+	rootCmd.Flags().IntVarP(&count, "count", "c", 1, "Number of passwords to generate")
 }
-
-
