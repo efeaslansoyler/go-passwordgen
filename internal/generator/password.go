@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"errors"
 	"fmt"
+	"math"
 	"math/big"
 	"strings"
 )
@@ -22,6 +23,12 @@ type PasswordOptions struct {
 	UseUpper        bool
 	UseLower        bool
 	Count           int
+}
+
+type GeneratedPassword struct {
+	Value    string
+	Strength string
+	Entropy  float64
 }
 
 func validateOptions(opt PasswordOptions) error {
@@ -89,14 +96,68 @@ func secureRandomInt(max int) (int, error) {
 	return int(n.Int64()), nil
 }
 
-func GeneratePassword(opt PasswordOptions) ([]string, error) {
+func PasswordEntropy(password string) (float64, string, error) {
+	if len(password) == 0 {
+		return 0, "", errors.New("password is empty")
+	}
+
+	var hasUpper, hasLower, hasNumber, hasSpecial bool
+
+	for _, r := range password {
+		switch {
+		case 'A' <= r && r <= 'Z':
+			hasUpper = true
+		case 'a' <= r && r <= 'z':
+			hasLower = true
+		case '0' <= r && r <= '9':
+			hasNumber = true
+		case strings.ContainsRune(specialChars, r):
+			hasSpecial = true
+		}
+	}
+
+	charsetSize := 0
+	if hasUpper {
+		charsetSize += len(uppercase)
+	}
+	if hasLower {
+		charsetSize += len(lowercase)
+	}
+	if hasNumber {
+		charsetSize += len(numbers)
+	}
+	if hasSpecial {
+		charsetSize += len(specialChars)
+	}
+	if charsetSize == 0 {
+		return 0, "", errors.New("password contains no recognized character types")
+	}
+
+	entropy := float64(len([]rune(password))) * math.Log2(float64(charsetSize))
+
+	var strength string
+	switch {
+	case entropy >= 80:
+		strength = "Excellent"
+	case entropy >= 60:
+		strength = "Strong"
+	case entropy >= 40:
+		strength = "Moderate"
+	default:
+		strength = "Weak"
+	}
+
+	return entropy, strength, nil
+}
+
+func GeneratePassword(opt PasswordOptions) ([]GeneratedPassword, error) {
 	if err := validateOptions(opt); err != nil {
 		return nil, err
 	}
 
 	charset := buildCharset(opt)
 	charsetRunes := []rune(charset)
-	passwords := make([]string, opt.Count)
+	passwords := make([]GeneratedPassword, opt.Count)
 
 	for i := range passwords {
 		password := make([]rune, opt.Length)
@@ -146,7 +207,18 @@ func GeneratePassword(opt PasswordOptions) ([]string, error) {
 		if err := shuffle(password); err != nil {
 			return nil, err
 		}
-		passwords[i] = string(password)
+
+		pwdStr := string(password)
+		entropy, strength, err := PasswordEntropy(pwdStr)
+		if err != nil {
+			return nil, err
+		}
+
+		passwords[i] = GeneratedPassword{
+			Value:    pwdStr,
+			Strength: strength,
+			Entropy:  entropy,
+		}
 	}
 
 	return passwords, nil

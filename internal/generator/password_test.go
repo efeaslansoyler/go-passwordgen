@@ -31,7 +31,8 @@ func TestGeneratePassword_Basic(t *testing.T) {
 	if len(passwords) != 5 {
 		t.Fatalf("expected 5 passwords, got %d", len(passwords))
 	}
-	for _, pwd := range passwords {
+	for _, gp := range passwords {
+		pwd := gp.Value
 		if len([]rune(pwd)) != 12 {
 			t.Errorf("expected password length 12, got %d", len([]rune(pwd)))
 		}
@@ -63,7 +64,8 @@ func TestGeneratePassword_OnlyNumbers(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	for _, pwd := range passwords {
+	for _, gp := range passwords {
+		pwd := gp.Value
 		for _, r := range pwd {
 			if !unicode.IsDigit(r) {
 				t.Errorf("expected only digits, got: %q", r)
@@ -85,7 +87,8 @@ func TestGeneratePassword_OnlyUpper(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	for _, pwd := range passwords {
+	for _, gp := range passwords {
+		pwd := gp.Value
 		for _, r := range pwd {
 			if !unicode.IsUpper(r) {
 				t.Errorf("expected only uppercase, got: %q", r)
@@ -151,7 +154,7 @@ func TestGeneratePassword_MinLength(t *testing.T) {
 	if len(passwords) != 1 {
 		t.Fatalf("expected 1 password, got %d", len(passwords))
 	}
-	pwd := passwords[0]
+	pwd := passwords[0].Value
 	if len([]rune(pwd)) != 4 {
 		t.Errorf("expected password length 4, got %d", len([]rune(pwd)))
 	}
@@ -171,7 +174,8 @@ func TestGeneratePassword_Uniqueness(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 	seen := make(map[string]struct{})
-	for _, pwd := range passwords {
+	for _, gp := range passwords {
+		pwd := gp.Value
 		if _, exists := seen[pwd]; exists {
 			t.Errorf("duplicate password generated: %s", pwd)
 		}

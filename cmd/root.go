@@ -24,21 +24,19 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/efeaslansoyler/go-passwordgen/internal/generator"
+	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 )
 
-// rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "go-passwordgen",
-	Short: "A brief description of your application",
-	Long: `A longer description that spans multiple lines and likely contains
-examples and usage of using your application. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short: "Generate secure random passwords from the command line",
+	Long: `go-passwordgen generates secure, random passwords with customizable
+length and character sets. Supports special characters, numbers, upper and
+lowercase letters.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		opts := generator.PasswordOptions{
 			Length:          length,
@@ -48,19 +46,27 @@ to quickly create a Cobra application.`,
 			UseLower:        useLower,
 			Count:           count,
 		}
+		start := time.Now()
 		passwords, err := generator.GeneratePassword(opts)
 		if err != nil {
 			return err
 		}
-		for i, password := range passwords {
-			fmt.Printf("Password %d: %s\n", i+1, password)
+		elapsed := time.Since(start)
+		if quiet {
+			for _, p := range passwords {
+				fmt.Println(p.Value)
+			}
+		} else {
+			for i, p := range passwords {
+				fmt.Printf("Password %d: %s (Strength: %s, Entropy: %.2f)\n", i+1, p.Value, colorStrength(p.Strength), p.Entropy)
+			}
+			fmt.Printf("Generation time: %s\n", elapsed)
+
 		}
 		return nil
 	},
 }
 
-// Execute adds all child commands to the root command and sets flags appropriately.
-// This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
 	err := rootCmd.Execute()
 	if err != nil {
@@ -75,13 +81,33 @@ var (
 	useUpper        bool
 	useLower        bool
 	count           int
+	quiet           bool
 )
 
+var Version = "dev"
+
 func init() {
+	rootCmd.Version = Version
 	rootCmd.Flags().IntVarP(&length, "length", "l", 12, "Length of the password")
 	rootCmd.Flags().BoolVarP(&useSpecialChars, "special", "s", true, "Use special characters")
 	rootCmd.Flags().BoolVarP(&useNumbers, "numbers", "n", true, "Use numbers")
 	rootCmd.Flags().BoolVarP(&useUpper, "upper", "u", true, "Use uppercase letters")
 	rootCmd.Flags().BoolVarP(&useLower, "lower", "o", true, "Use lowercase letters")
 	rootCmd.Flags().IntVarP(&count, "count", "c", 1, "Number of passwords to generate")
+	rootCmd.Flags().BoolVarP(&quiet, "quiet", "q", false, "Suppress output(Print only password(s)")
+}
+
+func colorStrength(strength string) string {
+	switch strength {
+	case "Excellent":
+		return color.New(color.FgHiGreen, color.Bold).Sprint(strength)
+	case "Strong":
+		return color.New(color.FgGreen).Sprint(strength)
+	case "Moderate":
+		return color.New(color.FgYellow).Sprint(strength)
+	case "Weak":
+		return color.New(color.FgRed).Sprint(strength)
+	default:
+		return strength
+	}
 }
