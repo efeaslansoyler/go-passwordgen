@@ -19,6 +19,8 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
+
+// Package cmd provides the command-line interface for go-passwordgen.
 package cmd
 
 import (
@@ -31,6 +33,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// rootCmd represents the base command for the CLI application.
+// It handles flag parsing, password generation, and output formatting.
 var rootCmd = &cobra.Command{
 	Use:   "go-passwordgen",
 	Short: "Generate secure random passwords from the command line",
@@ -58,15 +62,17 @@ lowercase letters.`,
 			}
 		} else {
 			for i, p := range passwords {
-				fmt.Printf("Password %d: %s (Strength: %s, Entropy: %.2f)\n", i+1, p.Value, colorStrength(p.Strength), p.Entropy)
+				fmt.Printf("Password %d: %s (Strength: %s, Entropy: %.2f)\n",
+					i+1, p.Value, colorStrength(p.Strength), p.Entropy)
 			}
 			fmt.Printf("Generation time: %s\n", elapsed)
-
 		}
 		return nil
 	},
 }
 
+// Execute runs the root command for the CLI application.
+// It should be called from main.main().
 func Execute() {
 	err := rootCmd.Execute()
 	if err != nil {
@@ -74,18 +80,21 @@ func Execute() {
 	}
 }
 
+// CLI flag variables.
 var (
-	length          int
-	useSpecialChars bool
-	useNumbers      bool
-	useUpper        bool
-	useLower        bool
-	count           int
-	quiet           bool
+	length          int  // Length of the generated password(s)
+	useSpecialChars bool // Include special characters in the password
+	useNumbers      bool // Include numbers in the password
+	useUpper        bool // Include uppercase letters in the password
+	useLower        bool // Include lowercase letters in the password
+	count           int  // Number of passwords to generate
+	quiet           bool // Print only the password(s), suppress extra output
 )
 
+// Version holds the application version, set at build time via -ldflags.
 var Version = "dev"
 
+// init initializes CLI flags and sets the application version.
 func init() {
 	rootCmd.Version = Version
 	rootCmd.Flags().IntVarP(&length, "length", "l", 12, "Length of the password")
@@ -94,9 +103,10 @@ func init() {
 	rootCmd.Flags().BoolVarP(&useUpper, "upper", "u", true, "Use uppercase letters")
 	rootCmd.Flags().BoolVarP(&useLower, "lower", "o", true, "Use lowercase letters")
 	rootCmd.Flags().IntVarP(&count, "count", "c", 1, "Number of passwords to generate")
-	rootCmd.Flags().BoolVarP(&quiet, "quiet", "q", false, "Suppress output(Print only password(s)")
+	rootCmd.Flags().BoolVarP(&quiet, "quiet", "q", false, "Suppress output (print only password(s))")
 }
 
+// colorStrength returns the password strength string colorized for CLI output.
 func colorStrength(strength string) string {
 	switch strength {
 	case "Excellent":

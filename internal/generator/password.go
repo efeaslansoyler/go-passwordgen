@@ -1,3 +1,4 @@
+// Package generator provides password generation and strength analysis utilities.
 package generator
 
 import (
@@ -16,21 +17,25 @@ const (
 	lowercase    = "abcdefghijklmnopqrstuvwxyz"
 )
 
+// PasswordOptions defines the options for password generation.
 type PasswordOptions struct {
-	Length          int
-	UseSpecialChars bool
-	UseNumbers      bool
-	UseUpper        bool
-	UseLower        bool
-	Count           int
+	Length          int  // Length of each generated password
+	UseSpecialChars bool // Include special characters
+	UseNumbers      bool // Include numbers
+	UseUpper        bool // Include uppercase letters
+	UseLower        bool // Include lowercase letters
+	Count           int  // Number of passwords to generate
 }
 
+// GeneratedPassword holds a generated password and its analysis.
 type GeneratedPassword struct {
-	Value    string
-	Strength string
-	Entropy  float64
+	Value    string  // The generated password string
+	Strength string  // Strength label (e.g., "Strong", "Weak")
+	Entropy  float64 // Entropy in bits
 }
 
+// validateOptions checks if the provided PasswordOptions are valid.
+// Returns an error if options are invalid.
 func validateOptions(opt PasswordOptions) error {
 	var minLength int
 	if opt.UseSpecialChars {
@@ -58,9 +63,10 @@ func validateOptions(opt PasswordOptions) error {
 	return nil
 }
 
+// shuffle randomly shuffles a slice of runes in place using a cryptographically secure random source.
 func shuffle(runes []rune) error {
 	N := len(runes)
-	for i := range N - 1 {
+	for i := 0; i < N-1; i++ {
 		r, err := secureRandomInt(N - i)
 		if err != nil {
 			return err
@@ -71,6 +77,7 @@ func shuffle(runes []rune) error {
 	return nil
 }
 
+// buildCharset constructs the character set string based on the provided options.
 func buildCharset(opt PasswordOptions) string {
 	var charset strings.Builder
 	if opt.UseUpper {
@@ -88,6 +95,7 @@ func buildCharset(opt PasswordOptions) string {
 	return charset.String()
 }
 
+// secureRandomInt returns a cryptographically secure random integer in [0, max).
 func secureRandomInt(max int) (int, error) {
 	n, err := rand.Int(rand.Reader, big.NewInt(int64(max)))
 	if err != nil {
@@ -96,6 +104,9 @@ func secureRandomInt(max int) (int, error) {
 	return int(n.Int64()), nil
 }
 
+// PasswordEntropy calculates the entropy of a password and returns
+// (entropy, strength label, error).
+// Strength is classified as "Excellent", "Strong", "Moderate", or "Weak".
 func PasswordEntropy(password string) (float64, string, error) {
 	if len(password) == 0 {
 		return 0, "", errors.New("password is empty")
@@ -150,6 +161,9 @@ func PasswordEntropy(password string) (float64, string, error) {
 	return entropy, strength, nil
 }
 
+// GeneratePassword generates one or more passwords based on the provided options.
+// Each password is guaranteed to contain at least one character from each selected set.
+// Returns a slice of GeneratedPassword, or an error if options are invalid.
 func GeneratePassword(opt PasswordOptions) ([]GeneratedPassword, error) {
 	if err := validateOptions(opt); err != nil {
 		return nil, err
@@ -163,6 +177,7 @@ func GeneratePassword(opt PasswordOptions) ([]GeneratedPassword, error) {
 		password := make([]rune, opt.Length)
 		position := 0
 
+		// Ensure at least one character from each selected set
 		if opt.UseUpper {
 			n, err := secureRandomInt(len(uppercase))
 			if err != nil {
@@ -196,6 +211,7 @@ func GeneratePassword(opt PasswordOptions) ([]GeneratedPassword, error) {
 			position++
 		}
 
+		// Fill the rest of the password with random characters from the charset
 		for j := position; j < opt.Length; j++ {
 			n, err := secureRandomInt(len(charsetRunes))
 			if err != nil {
@@ -204,6 +220,7 @@ func GeneratePassword(opt PasswordOptions) ([]GeneratedPassword, error) {
 			password[j] = charsetRunes[n]
 		}
 
+		// Shuffle to avoid predictable character positions
 		if err := shuffle(password); err != nil {
 			return nil, err
 		}
