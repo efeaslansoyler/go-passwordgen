@@ -13,6 +13,10 @@ Go ile yazılmış esnek ve güvenli bir komut satırı parola üreteci.
 - Büyük harfleri dahil etme/çıkarma seçeneği
 - Küçük harfleri dahil etme/çıkarma seçeneği
 - Aynı anda birden fazla parola üretebilme
+- Parola gücü analizi (Mükemmel, Güçlü, Orta, Zayıf)
+- Entropi hesaplama ve görüntüleme
+- Üretim süresi görüntüleme
+- Sürüm bilgisi
 - Kullanımı kolay komut satırı arayüzü
 
 ## Kurulum
@@ -38,6 +42,8 @@ Bu komut, tüm karakter tiplerini içeren 12 karakterlik bir parola üretecektir
 - `-u, --upper`: Büyük harfleri dahil eder (varsayılan: true)
 - `-o, --lower`: Küçük harfleri dahil eder (varsayılan: true)
 - `-c, --count`: Üretilecek parola sayısı (varsayılan: 1)
+- `-q, --quiet`: Çıktıyı bastırır (sadece parolayı yazdırır) (varsayılan: false)
+- `-v, --version`: Sürüm bilgisini görüntüler
 
 ### Örnekler
 

@@ -13,6 +13,10 @@ A flexible and secure command-line password generator written in Go.
 - Include/exclude uppercase letters
 - Include/exclude lowercase letters
 - Generate multiple passwords at once
+- Password strength analysis (Excellent, Strong, Moderate, Weak)
+- Entropy calculation and display
+- Generation time display
+- Version information
 - Easy-to-use command-line interface
 
 ## Installation
@@ -38,6 +42,8 @@ This will generate a 12-character password with all character types included.
 - `-u, --upper`: Include uppercase letters (default: true)
 - `-o, --lower`: Include lowercase letters (default: true)
 - `-c, --count`: Number of passwords to generate (default: 1)
+- `-q, --quiet`: Suppress output (print only password(s)) (default: false)
+- `-v, --version`: Display version information
 
 ### Examples
 
